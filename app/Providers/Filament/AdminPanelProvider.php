@@ -6,6 +6,8 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\HtmlString;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -27,6 +29,17 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->darkMode(false)
+            ->sidebarCollapsibleOnDesktop()
+            ->brandName('WillyAuto')
+            ->brandLogo(fn () => view('filament.logo'))
+            ->brandLogoHeight('2.4rem')
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString(
+                '<link rel="stylesheet" href="' . asset('css/filament/filament/admin.css') . '?v=' . filemtime(public_path('css/filament/filament/admin.css')) . '">'
+            ))
+            ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-footer'))
+            ->colors(['primary' => Color::Orange])
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString())
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -37,10 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
-            ])
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

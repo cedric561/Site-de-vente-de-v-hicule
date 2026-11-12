@@ -18,8 +18,11 @@ class DemandeResource extends Resource
 {
     protected static ?string $model = Demande::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+    protected static ?string $modelLabel = 'demande';
+    protected static ?string $pluralModelLabel = 'demandes';
+    protected static ?int $navigationSort = 2;
+    
     public static function form(Schema $schema): Schema
     {
         return DemandeForm::configure($schema);
