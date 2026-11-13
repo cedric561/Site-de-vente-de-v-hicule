@@ -66,36 +66,144 @@ function alerteInit() {
   });
 }
 
+const LOGO = '<svg width="32" height="32" viewBox="0 0 38 38" fill="none" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#f26a3d"/><stop offset="1" stop-color="#d1401a"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#lg)"/><path d="M9 12.5l4.2 13 5.8-9.6 5.8 9.6 4.2-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 30h18" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/></svg>';
+const HEURES = { ouverture: 8, fermeture: 18 };
+const initiales = n => String(n || NOM).split(' ').filter(Boolean).map(m => m[0]).slice(0, 2).join('').toUpperCase();
+const imgSure = src => src ? `<img src="${esc(src)}" alt="" onerror="this.remove()">` : '';
+
+function statutOuverture() {
+  const t = new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Abidjan' }));
+  const j = t.getDay(), h = t.getHours() + t.getMinutes() / 60;
+  if (j !== 0 && h >= HEURES.ouverture && h < HEURES.fermeture) return [true, `Ouvert · ferme à ${HEURES.fermeture}h`];
+  const quand = (j === 6 && h >= HEURES.fermeture) || j === 0 ? 'lundi' : (h < HEURES.ouverture ? "aujourd'hui" : 'demain');
+  return [false, `Fermé · ouvre ${quand} à ${HEURES.ouverture}h`];
+}
+
+const apropos = () => {
+  const a = {
+    nom: '', titre: 'Votre conseiller automobile', photo: '', galerie: [], chiffres: [],
+    texte: [
+      `Chez ${NOM}, acheter un véhicule doit rester une belle expérience. Chaque voiture proposée est sélectionnée avec soin, contrôlée avant la vente et présentée en toute transparence : état réel, historique et prix clairs.`,
+      "Notre rôle est de vous accompagner de la première visite jusqu'à la remise des clés : conseils, essai du véhicule, facilités de paiement et suivi après-vente."
+    ],
+    valeurs: [
+      ['bi-patch-check', 'Transparence', 'Prix clairs et état réel du véhicule, sans surprise.'],
+      ['bi-wrench-adjustable', 'Véhicules contrôlés', 'Une inspection avant chaque mise en vente.'],
+      ['bi-people', 'Accompagnement', "Conseils, essai et suivi après l'achat."]
+    ],
+    ...(CONFIG.APROPOS || {})
+  };
+  return `
+  <section class="sec apropos" id="apropos"><div class="container"><div class="row align-items-center g-5">
+    <div class="col-lg-5 rv"><div class="ap-visuel">
+      <div class="ap-main"><i class="bi bi-person-badge"></i>${imgSure(a.photo)}</div>
+      ${a.galerie.length ? `<div class="ap-mini">${a.galerie.slice(0, 2).map(g => `<div>${imgSure(g)}</div>`).join('')}</div>` : ''}
+    </div></div>
+    <div class="col-lg-7 rv" style="--d:120ms">
+      <span class="eyebrow">Qui sommes-nous</span>
+      <h2 class="fw-bold mb-1">${esc(a.nom || "Une équipe passionnée par l'automobile")}</h2>
+      <p class="text-accent fw-semibold">${esc(a.titre)}</p>
+      ${a.texte.map(t => `<p class="text-muted">${esc(t)}</p>`).join('')}
+      ${a.chiffres.length ? `<div class="d-flex gap-4 my-4">${a.chiffres.map(([n, l]) => `<div class="chiffre"><strong>${esc(n)}</strong><div class="small text-muted">${esc(l)}</div></div>`).join('')}</div>` : ''}
+      <div class="row g-3 my-2">${a.valeurs.map(([ic, t, d]) => `<div class="col-md-4"><div class="val"><i class="bi ${esc(ic)}"></i><div><div class="fw-bold">${esc(t)}</div><div class="small text-muted">${esc(d)}</div></div></div></div>`).join('')}</div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-accent px-4" data-wa target="_blank" rel="noopener" href="#"><i class="bi bi-whatsapp me-2"></i>Nous écrire</a>
+        <a class="btn btn-outline-dark px-4" data-tel href="#"><i class="bi bi-telephone me-2"></i>Appeler</a>
+      </div>
+    </div>
+  </div></div></section>`;
+};
+
+const developpeur = () => {
+  const d = {
+    nom: 'Cedric Yomenou', titre: 'Développeur web & mobile', photo: '', whatsapp: '', email: '',
+    texte: 'Ce site (catalogue, alertes WhatsApp, statuts et espace de gestion) a été conçu sur mesure. Je réalise le même type de solution pour les concessionnaires, commerces et entreprises qui veulent vendre et se faire connaître en ligne.',
+    services: [
+      ['bi-globe2', 'Sites web sur mesure', 'Vitrines, catalogues et boutiques en ligne.'],
+      ['bi-speedometer2', 'Plateformes de gestion', 'Espace admin, statistiques et suivi des clients.'],
+      ['bi-phone', 'Applications mobiles', 'Applications web installables sur téléphone.'],
+      ['bi-shield-check', 'Maintenance & évolution', 'Hébergement, sécurité et mises à jour.']
+    ],
+    ...(CONFIG.DEVELOPPEUR || {})
+  };
+  const prenom = d.nom.split(' ')[0];
+  const contact = d.whatsapp
+    ? `<a class="btn btn-accent px-4" target="_blank" rel="noopener" href="https://wa.me/${esc(d.whatsapp)}?text=${encodeURIComponent(`Bonjour ${prenom}, j'ai vu votre travail sur ${NOM} et je souhaite discuter d'un projet.`)}"><i class="bi bi-whatsapp me-2"></i>Discutons de votre projet</a>`
+    : d.email ? `<a class="btn btn-accent px-4" href="mailto:${esc(d.email)}"><i class="bi bi-envelope me-2"></i>Discutons de votre projet</a>` : '';
+  return `
+  <section class="dev" id="developpeur"><div class="container"><div class="dev-card rv"><div class="row align-items-center g-4">
+    <div class="col-lg-4 text-center">
+      <div class="dev-photo"><div>${esc(initiales(d.nom))}${imgSure(d.photo)}</div></div>
+      <h3 class="h5 fw-bold mb-1">${esc(d.nom)}</h3><div class="opacity-75">${esc(d.titre)}</div>
+    </div>
+    <div class="col-lg-8">
+      <span class="eyebrow">Derrière ce site</span>
+      <h2 class="fw-bold">Un site comme celui-ci pour votre activité ?</h2>
+      <p class="opacity-75">${esc(d.texte)}</p>
+      <div class="row g-3 my-3">${d.services.map(([ic, t, x]) => `<div class="col-sm-6"><div class="srv"><i class="bi ${esc(ic)}"></i><div class="fw-semibold mt-2">${esc(t)}</div><div class="small opacity-75">${esc(x)}</div></div></div>`).join('')}</div>
+      ${contact}
+    </div>
+  </div></div></div></section>`;
+};
+
+const pied = () => {
+  const r = CONFIG.RESEAUX || {};
+  const ico = { facebook: 'bi-facebook', instagram: 'bi-instagram', tiktok: 'bi-tiktok', youtube: 'bi-youtube' };
+  const liens = Object.entries(ico).filter(([k]) => r[k]).map(([k, c]) => `<a href="${esc(r[k])}" target="_blank" rel="noopener" aria-label="${k}"><i class="bi ${c}"></i></a>`).join('');
+  const dev = (CONFIG.DEVELOPPEUR && CONFIG.DEVELOPPEUR.nom) || 'Cedric Yomenou';
+  return `
+  <footer class="pied" id="contact"><div class="pied-ligne"></div>
+    <div class="container py-5"><div class="row g-5">
+      <div class="col-lg-4 rv"><div class="pied-logo">${LOGO}<span>${esc(NOM)}</span></div>
+        <p class="small mt-3 mb-0">Vente de véhicules neufs et d'occasion, contrôlés et garantis. Un conseiller vous accompagne de la visite à la remise des clés.</p>
+        <div class="reseaux"><a href="${lienWa('Bonjour')}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>${liens}</div></div>
+      <div class="col-6 col-lg-2 rv" style="--d:80ms"><h3 class="pied-t">Navigation</h3><ul>
+        <li><a href="index.html">Accueil</a></li><li><a href="catalogue.html">Catalogue</a></li>
+        <li><a href="index.html#etapes">Comment ça marche</a></li><li><a href="index.html#apropos">À propos</a></li></ul></div>
+      <div class="col-6 col-lg-3 rv" style="--d:160ms"><h3 class="pied-t">Contact</h3><ul class="small">
+        <li><i class="bi bi-geo-alt me-2"></i>Abidjan, Côte d'Ivoire</li>
+        <li><a href="tel:${CONFIG.VENDEUR.telephone}"><i class="bi bi-telephone me-2"></i>${esc(CONFIG.VENDEUR.telephone)}</a></li>
+        <li><a href="${lienWa('Bonjour')}" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a></li></ul></div>
+      <div class="col-lg-3 rv" style="--d:240ms"><h3 class="pied-t">Horaires</h3><div id="ouvert"></div>
+        <div class="small">Lun – Sam : ${HEURES.ouverture}h – ${HEURES.fermeture}h</div><div class="small">Dimanche : fermé</div></div>
+    </div></div>
+    <div class="pied-bas"><div class="container d-flex flex-wrap justify-content-between gap-2 small">
+      <span>© ${new Date().getFullYear()} ${esc(NOM)}. Tous droits réservés.</span>
+      <span>Site conçu par <a class="text-white" href="index.html#developpeur">${esc(dev)}</a></span></div></div>
+  </footer>`;
+};
+
 function layout(page) {
   $('#nav').innerHTML = `
   <nav class="navbar navbar-expand-lg fixed-top nav-main ${page === 'accueil' ? '' : 'nav-solid'}">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-car-front-fill text-accent me-2"></i>${esc(NOM)}</a>
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">${LOGO}${esc(NOM)}</a>
       <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="menu">
         <ul class="navbar-nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
           <li class="nav-item"><a class="nav-link" href="catalogue.html">Catalogue</a></li>
           <li class="nav-item"><a class="nav-link" href="index.html#etapes">Comment ça marche</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html#apropos">À propos</a></li>
           <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
         </ul>
         <a class="btn btn-accent btn-sm px-3" href="catalogue.html">Voir les véhicules</a>
       </div>
     </div>
   </nav>`;
+  if (page === 'accueil') $('#pied').insertAdjacentHTML('beforebegin', apropos());
   $('#pied').insertAdjacentHTML('beforebegin', alerte());
-  $('#pied').outerHTML = `
-  <footer class="pied py-5" id="contact"><div class="container">
-    <div class="row g-4">
-      <div class="col-md-5"><div class="text-white fw-bold fs-5 mb-2"><i class="bi bi-car-front-fill text-accent me-2"></i>${esc(NOM)}</div><p class="small">Vente de véhicules neufs et d'occasion, contrôlés et garantis.</p></div>
-      <div class="col-md-4 small"><div class="text-white fw-semibold mb-2">Contact</div>
-        <div><i class="bi bi-geo-alt me-2"></i>Abidjan, Côte d'Ivoire</div>
-        <div><a href="tel:${CONFIG.VENDEUR.telephone}"><i class="bi bi-telephone me-2"></i>${esc(CONFIG.VENDEUR.telephone)}</a></div>
-        <div><a href="${lienWa('Bonjour')}" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a></div></div>
-      <div class="col-md-3 small"><div class="text-white fw-semibold mb-2">Horaires</div><div>Lun – Sam : 8h – 18h</div></div>
-    </div>
-    <hr class="border-secondary my-4"><div class="small text-center">© ${new Date().getFullYear()} ${esc(NOM)}. Tous droits réservés.</div>
-  </div></footer>`;
+  if (page === 'accueil') $('#pied').insertAdjacentHTML('beforebegin', developpeur());
+  $('#pied').outerHTML = pied();
+  document.body.insertAdjacentHTML('beforeend', '<a class="fab fab-wa" data-wa target="_blank" rel="noopener" href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a><button class="fab fab-haut" id="haut" aria-label="Haut de page"><i class="bi bi-arrow-up"></i></button>');
+  $('#haut').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+  addEventListener('scroll', () => $('#haut').classList.toggle('on', scrollY > 600), { passive: true });
+  const majOuvert = () => {
+    const [ouvert, texte] = statutOuverture();
+    $('#ouvert').innerHTML = `<span class="ouvert ${ouvert ? '' : 'ferme'}"><i></i>${texte}</span>`;
+  };
+  majOuvert();
+  setInterval(majOuvert, 60000);
   document.body.insertAdjacentHTML('beforeend', '<div class="modal fade" id="modal-vehicule" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" id="modal-contenu"></div></div></div>');
   document.querySelectorAll('[data-tel]').forEach(a => a.href = 'tel:' + CONFIG.VENDEUR.telephone);
   document.querySelectorAll('[data-wa]').forEach(a => a.href = lienWa('Bonjour, je souhaite des informations sur vos véhicules.'));
@@ -210,7 +318,126 @@ function hero(data) {
   setInterval(() => { s[i].classList.remove('on'); i = (i + 1) % s.length; s[i].classList.add('on'); }, 6000);
 }
 
+const ETIQ = {
+  nouveau: ['Nouvel arrivage', '#e4572e'], promo: ['Promo flash', '#f59e0b'], dernier: ['Dernier exemplaire', '#8b5cf6'],
+  essai: ['Essai vidéo', '#0ea5e9'], vendu: ['Vendu', '#64748b'], info: ['Info', '#10b981']
+};
+const SV = { liste: [], i: 0, ecoule: 0, duree: 5000, pause: false, dernier: 0, raf: 0, appui: 0 };
+
+const mediaHtml = (s, plein = false) => s.type === 'video'
+  ? `<video src="${esc(s.media)}${plein ? '' : '#t=0.1'}" muted playsinline ${plein ? '' : 'preload="metadata"'}></video>`
+  : `<img src="${esc(s.media)}" alt="${esc(s.legende || 'Statut')}" ${plein ? '' : 'loading="lazy"'}>`;
+
+async function stories() {
+  let liste = [];
+  try { liste = (await Api.get('/statuts')).data; } catch (e) { return; }
+  if (!liste.length) return;
+  SV.liste = liste;
+  $('#accueil').insertAdjacentHTML('afterend', `
+    <section class="stories rv"><div class="container">
+      <span class="eyebrow">À la une aujourd'hui</span>
+      <div class="stories-strip">${liste.map((s, i) => {
+        const [nom, c] = ETIQ[s.etiquette] || ETIQ.info;
+        return `<button class="st" data-st="${i}" style="--c:${c}"><div class="st-ring"><div class="st-in">${mediaHtml(s)}</div></div><div class="st-lab">${esc(nom)}</div></button>`;
+      }).join('')}</div>
+    </div></section>`);
+  $('.stories-strip').addEventListener('click', e => { const b = e.target.closest('[data-st]'); if (b) ouvrirStory(+b.dataset.st); });
+  revele();
+}
+
+function ouvrirStory(i) {
+  if (!$('#sv')) {
+    document.body.insertAdjacentHTML('beforeend', `
+    <div class="sv" id="sv" hidden><div class="sv-box">
+      <div class="sv-bars" id="sv-bars"></div>
+      <div class="sv-head"><span class="sv-tag" id="sv-tag"></span>
+        <div><button class="sv-btn" id="sv-son" hidden aria-label="Son"><i class="bi bi-volume-mute"></i></button> <button class="sv-btn" id="sv-x" aria-label="Fermer"><i class="bi bi-x-lg"></i></button></div></div>
+      <div class="sv-media" id="sv-media"></div>
+      <button class="sv-zone sv-prev" aria-label="Précédent"></button><button class="sv-zone sv-next" aria-label="Suivant"></button>
+      <div class="sv-foot"><p class="sv-cap" id="sv-cap"></p><div class="sv-actions" id="sv-actions"></div></div>
+    </div></div>`);
+    const sv = $('#sv');
+    $('#sv-x').onclick = fermerStory;
+    sv.addEventListener('click', e => { if (e.target === sv) fermerStory(); });
+    sv.addEventListener('pointerdown', () => { SV.pause = true; SV.appui = Date.now(); $('#sv-media video')?.pause(); });
+    const reprise = () => { SV.pause = false; $('#sv-media video')?.play().catch(() => {}); };
+    sv.addEventListener('pointerup', reprise);
+    sv.addEventListener('pointercancel', reprise);
+    const toucher = d => { if (Date.now() - SV.appui > 300) return; d > 0 ? suivante() : precedente(); };
+    $('.sv-prev').onclick = () => toucher(-1);
+    $('.sv-next').onclick = () => toucher(1);
+    $('#sv-son').onclick = () => {
+      const v = $('#sv-media video');
+      if (v) { v.muted = !v.muted; $('#sv-son i').className = 'bi bi-volume-' + (v.muted ? 'mute' : 'up'); }
+    };
+    addEventListener('keydown', e => {
+      if ($('#sv').hidden) return;
+      if (e.key === 'Escape') fermerStory();
+      if (e.key === 'ArrowRight') suivante();
+      if (e.key === 'ArrowLeft') precedente();
+    });
+  }
+  $('#sv').hidden = false;
+  document.body.style.overflow = 'hidden';
+  afficherStory(i);
+}
+
+function fermerStory() {
+  cancelAnimationFrame(SV.raf);
+  $('#sv-media').innerHTML = '';
+  $('#sv').hidden = true;
+  document.body.style.overflow = '';
+}
+
+const suivante = () => SV.i < SV.liste.length - 1 ? afficherStory(SV.i + 1) : fermerStory();
+const precedente = () => afficherStory(Math.max(0, SV.i - 1));
+
+function afficherStory(i) {
+  cancelAnimationFrame(SV.raf);
+  SV.i = i; SV.ecoule = 0; SV.duree = 5000; SV.pause = false;
+  const s = SV.liste[i], [nom, c] = ETIQ[s.etiquette] || ETIQ.info, veh = s.vehicule;
+  $('.sv-box').style.setProperty('--c', c);
+  $('#sv-tag').textContent = nom;
+  $('#sv-media').innerHTML = mediaHtml(s, true);
+  $('#sv-media').style.setProperty('--bg', s.type === 'image' ? `url("${s.media}")` : 'none');
+  $('#sv-cap').textContent = s.legende || '';
+  $('#sv-bars').innerHTML = SV.liste.map((_, k) => `<div class="sv-bar"><i style="width:${k < i ? 100 : 0}%"></i></div>`).join('');
+  const v = $('#sv-media video');
+  $('#sv-son').hidden = !v;
+  $('#sv-son i').className = 'bi bi-volume-mute';
+  if (v) {
+    v.addEventListener('loadedmetadata', () => { SV.duree = Math.min(Math.max(v.duration * 1000, 3000), 30000); });
+    v.play().catch(() => {});
+  }
+  const texte = veh
+    ? `Bonjour, je suis intéressé par la ${veh.marque} ${veh.modele} (${prix(veh.prix)}).`
+    : `Bonjour, je suis intéressé par : ${s.legende || 'vos véhicules'}.`;
+  $('#sv-actions').innerHTML =
+    (veh ? '<button class="btn btn-light fw-semibold" id="sv-voir">Voir ce véhicule</button>' : '') +
+    `<a class="btn btn-success fw-semibold" id="sv-wa" target="_blank" rel="noopener" href="${lienWa(texte)}"><i class="bi bi-whatsapp me-1"></i>Je suis intéressé</a>`;
+  $('#sv-wa').onclick = () => poster(`/statuts/${s.id}/clic`, {});
+  if (veh) $('#sv-voir').onclick = () => {
+    poster(`/statuts/${s.id}/clic`, {});
+    fermerStory();
+    if (!etat.liste.some(x => x.id === veh.id)) etat.liste.push(veh);
+    detail(veh.id);
+  };
+  poster(`/statuts/${s.id}/vue`, {});
+  SV.dernier = performance.now();
+  SV.raf = requestAnimationFrame(boucleStory);
+}
+
+function boucleStory(t) {
+  if (!SV.pause) SV.ecoule += t - SV.dernier;
+  SV.dernier = t;
+  const barre = $('#sv-bars').children[SV.i]?.firstChild;
+  if (barre) barre.style.width = Math.min(SV.ecoule / SV.duree * 100, 100) + '%';
+  if (SV.ecoule >= SV.duree) return suivante();
+  SV.raf = requestAnimationFrame(boucleStory);
+}
+
 async function accueil() {
+  stories();
   let nbV = 0, nbM = 0;
   new IntersectionObserver(es => es.forEach(e => {
     e.target.classList.toggle('play', e.isIntersecting);
