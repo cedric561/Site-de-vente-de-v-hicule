@@ -34,9 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('WillyAuto')
             ->brandLogo(fn () => view('filament.logo'))
             ->brandLogoHeight('2.4rem')
-            ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString(
-                '<link rel="stylesheet" href="' . asset('css/filament/filament/admin.css') . '?v=' . filemtime(public_path('css/filament/filament/admin.css')) . '">'
-            ))
+           ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString('<link rel="stylesheet" href="' . asset('css/admin.css') . '?v=' . (@filemtime(public_path('css/admin.css')) ?: 1) . '">'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.sidebar-footer'))
             ->colors(['primary' => Color::Orange])
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => new HtmlString())

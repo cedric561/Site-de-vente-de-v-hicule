@@ -1,0 +1,64 @@
+:root {
+    --wa-navy: #0f1b2d;
+    --wa-accent: #e4572e;
+    --wa-accent-soft: #ff8a5c;
+    --wa-line: #e8ebf2;
+}
+
+/* Fond et typographie */
+body, .fi-body, .fi-layout, .fi-main-ctn, .fi-main { background: #fff !important; }
+body { -webkit-font-smoothing: antialiased; }
+
+/* Logo */
+.wa-logo { display: flex; align-items: center; gap: .65rem; height: 100%; }
+.wa-logo-text { font-weight: 800; font-size: 1.4rem; letter-spacing: -.02em; color: var(--wa-navy); line-height: 1; }
+.wa-logo-text em { font-style: normal; color: var(--wa-accent); }
+
+/* Barre du haut */
+.fi-topbar { background: #fff !important; border-bottom: 1px solid var(--wa-line); }
+
+/* Menu latéral sombre */
+.fi-sidebar, .fi-sidebar-nav { background: var(--wa-navy) !important; }
+.fi-sidebar { border-right: 0 !important; }
+.fi-sidebar-item-btn { border-radius: 10px !important; transition: background .2s; }
+.fi-sidebar-item-btn:hover { background: rgba(255, 255, 255, .08) !important; }
+.fi-sidebar-item-label, .fi-sidebar-item-icon, .fi-sidebar-group-label { color: rgba(255, 255, 255, .72) !important; }
+.fi-sidebar-group-label { text-transform: uppercase; font-size: .7rem; letter-spacing: .08em; }
+.fi-sidebar-item.fi-active .fi-sidebar-item-btn { background: rgba(228, 87, 46, .18) !important; }
+.fi-sidebar-item.fi-active .fi-sidebar-item-label,
+.fi-sidebar-item.fi-active .fi-sidebar-item-icon { color: var(--wa-accent-soft) !important; font-weight: 600; }
+
+/* Pied du menu : utilisateur et déconnexion */
+.wa-sidebar-footer { margin-top: auto; padding: 1rem; border-top: 1px solid rgba(255, 255, 255, .1); container-type: inline-size; }
+.wa-user { display: flex; align-items: center; gap: .7rem; margin-bottom: .9rem; min-width: 0; }
+.wa-avatar { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--wa-accent); color: #fff; font-weight: 700; font-size: .85rem; display: flex; align-items: center; justify-content: center; }
+.wa-user-infos { min-width: 0; }
+.wa-user-name { color: #fff; font-weight: 600; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-user-mail { color: rgba(255, 255, 255, .55); font-size: .75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-site { width: 100%; display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .6rem; margin-bottom: .6rem; border-radius: 10px; font-size: .88rem; font-weight: 600; color: #fff !important; background: var(--wa-accent); text-decoration: none; transition: .2s; }
+.wa-site:hover { background: #c9431d; }
+.wa-logout { width: 100%; display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .6rem; border-radius: 10px; font-size: .88rem; font-weight: 600; color: #fff; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .16); cursor: pointer; transition: .2s; }
+.wa-logout:hover { background: var(--wa-accent); border-color: var(--wa-accent); }
+.wa-ico { width: 1.1rem; height: 1.1rem; flex: none; }
+
+/* Menu réduit : seulement l'avatar et l'icône de déconnexion */
+@container (max-width: 150px) {
+    .wa-user { justify-content: center; margin-bottom: .7rem; }
+    .wa-user-infos { display: none; }
+    .wa-logout { width: 2.75rem; height: 2.75rem; padding: 0; margin: 0 auto; }
+    .wa-logout span { display: none; }
+    .wa-site { width: 2.75rem; height: 2.75rem; padding: 0; margin: 0 auto .6rem; }
+    .wa-site span { display: none; }
+}
+
+/* Cartes, tableaux, formulaires */
+.fi-section, .fi-ta-ctn, .fi-wi-stats-overview-stat, .fi-wi-chart {
+    background: #fff !important;
+    border: 1px solid var(--wa-line) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(16, 24, 40, .05) !important;
+}
+.fi-wi-stats-overview-stat { transition: transform .25s, box-shadow .25s; }
+.fi-wi-stats-overview-stat:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(16, 24, 40, .1) !important; }
+.fi-ta-header-cell { background: #f8fafc !important; text-transform: uppercase; font-size: .72rem; letter-spacing: .05em; }
+.fi-btn, .fi-input-wrp, .fi-dropdown-panel { border-radius: 10px !important; }
