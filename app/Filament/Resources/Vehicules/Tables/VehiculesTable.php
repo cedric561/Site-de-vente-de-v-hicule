@@ -21,8 +21,8 @@ class VehiculesTable
                 TextColumn::make('marque')->searchable()->sortable(),
                 TextColumn::make('modele')->label('Modèle')->searchable(),
                 TextColumn::make('annee')->label('Année')->sortable(),
-                TextColumn::make('prix')->sortable()
-                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' ') . ' FCFA'),
+                TextColumn::make('prix')->label('Prix')->sortable()
+                    ->state(fn ($record) => $record->prix_affiche),
                 TextColumn::make('etat')->label('État')->badge(),
                 IconColumn::make('actif')->label('Visible')->boolean(),
             ])

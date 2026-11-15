@@ -1,5 +1,6 @@
 const CONFIG = {
   API_URL: '/api',
+  ADMIN_URL: '/admin',
   PAR_PAGE: 6,
   APROPOS: {
   nom: '[ADJOMOU WILFRIED]',
@@ -10,15 +11,15 @@ const CONFIG = {
 },
 DEVELOPPEUR: {
   nom: 'Cedric Yomenou',
-  titre: 'Développeur web & mobile',
+  titre: 'Développeur web',
   photo: 'assets/img/developpeur.jpeg',
   whatsapp: '2250708860099',
   email: 'Saintkofcedric@gmail.com',
 },
 RESEAUX: {
-  facebook: '',
+  facebook: 'https://www.facebook.com/share/1EHvfNEkn6/',
   instagram: '',
-  tiktok: '',
+  tiktok: 'https://www.tiktok.com/@user2977708131599?_r=1&_t=ZS-9BPMsD6fwDF',
   youtube: '',
 },
   DEVISE: 'FCFA',
@@ -26,5 +27,7 @@ RESEAUX: {
   HERO_IMAGES: [],
   REPLI_DEMO: false,
   // Coordonnées du vendeur : numéro au format international, sans le « + » pour WhatsApp.
-  VENDEUR: { telephone: '+2250708860099', whatsapp: '2250708860099' }
+  VENDEUR: { telephone: '+2250749746069', whatsapp: '2250749746069' }
 };
+
+

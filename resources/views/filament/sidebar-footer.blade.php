@@ -15,6 +15,11 @@
         </div>
     </div>
 
+    <a href="{{ url('/') }}" target="_blank" rel="noopener" class="wa-site" title="Voir le site">
+        <x-heroicon-o-arrow-top-right-on-square class="wa-ico" />
+        <span>Voir le site</span>
+    </a>
+
     <form method="POST" action="{{ \Filament\Facades\Filament::getLogoutUrl() }}">
         @csrf
         <button type="submit" class="wa-logout" title="Déconnexion" aria-label="Déconnexion">

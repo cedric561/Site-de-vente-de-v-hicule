@@ -17,8 +17,11 @@ class VehiculeForm
             TextInput::make('marque')->required()->maxLength(80),
             TextInput::make('modele')->label('Modèle')->required()->maxLength(80),
             TextInput::make('annee')->label('Année')->numeric()->required()->minValue(1990)->maxValue(2035),
-            TextInput::make('prix')->label('Prix (FCFA)')->numeric()->required()->minValue(0),
-            TextInput::make('kilometrage')->label('Kilométrage')->numeric()->default(0)->suffix('km'),
+            TextInput::make('prix')->label('Prix exact (FCFA), facultatif')->numeric()->minValue(0)
+                ->helperText('Laisse vide pour afficher une fourchette ou « Prix sur demande ».'),
+            Toggle::make('prix_negociable')->label('Prix à débattre avec le vendeur')->default(false),
+            TextInput::make('prix_min')->label('Fourchette : de (FCFA)')->numeric()->minValue(0),
+            TextInput::make('prix_max')->label('Fourchette : à (FCFA)')->numeric()->minValue(0),            TextInput::make('kilometrage')->label('Kilométrage')->numeric()->default(0)->suffix('km'),
             Select::make('carburant')->required()->options([
                 'Essence' => 'Essence',
                 'Diesel' => 'Diesel',

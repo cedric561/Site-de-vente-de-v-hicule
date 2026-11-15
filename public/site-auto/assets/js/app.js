@@ -1,8 +1,10 @@
 const $ = (s, r = document) => r.querySelector(s);
 const NOM = CONFIG.NOM || 'BravoAuto';
+const ADMIN_URL = CONFIG.ADMIN_URL || '/admin';
 const etat = { page: 1, liste: [], favoris: JSON.parse(localStorage.getItem('favoris') || '[]') };
 
 const prix = n => new Intl.NumberFormat('fr-FR').format(n) + ' ' + CONFIG.DEVISE;
+const prixV = v => v.prix_affiche || (v.prix ? prix(v.prix) : 'Prix sur demande');
 const km = n => n ? new Intl.NumberFormat('fr-FR').format(n) + ' km' : 'Neuf';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const imgs = v => (v.images && v.images.length ? v.images : v.image ? [v.image] : []);
@@ -67,17 +69,9 @@ function alerteInit() {
 }
 
 const LOGO = '<svg width="32" height="32" viewBox="0 0 38 38" fill="none" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#f26a3d"/><stop offset="1" stop-color="#d1401a"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#lg)"/><path d="M9 12.5l4.2 13 5.8-9.6 5.8 9.6 4.2-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 30h18" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/></svg>';
-const HEURES = { ouverture: 8, fermeture: 18 };
 const initiales = n => String(n || NOM).split(' ').filter(Boolean).map(m => m[0]).slice(0, 2).join('').toUpperCase();
-const imgSure = src => src ? `<img src="${esc(src)}" alt="" onerror="this.remove()">` : '';
-
-function statutOuverture() {
-  const t = new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Abidjan' }));
-  const j = t.getDay(), h = t.getHours() + t.getMinutes() / 60;
-  if (j !== 0 && h >= HEURES.ouverture && h < HEURES.fermeture) return [true, `Ouvert · ferme à ${HEURES.fermeture}h`];
-  const quand = (j === 6 && h >= HEURES.fermeture) || j === 0 ? 'lundi' : (h < HEURES.ouverture ? "aujourd'hui" : 'demain');
-  return [false, `Fermé · ouvre ${quand} à ${HEURES.ouverture}h`];
-}
+const ressource = p => /^(https?:)?\/|^data:/.test(p) ? p : '/site-auto/' + p;
+const imgSure = src => src ? `<img src="${esc(ressource(src))}" alt="" onerror="this.remove()">` : '';
 
 const apropos = () => {
   const a = {
@@ -116,12 +110,12 @@ const apropos = () => {
 
 const developpeur = () => {
   const d = {
-    nom: 'Cedric Yomenou', titre: 'Développeur web & mobile', photo: '', whatsapp: '', email: '',
+    nom: 'Cedric Yomenou', titre: 'Développeur web', photo: '', whatsapp: '', email: '',
     texte: 'Ce site (catalogue, alertes WhatsApp, statuts et espace de gestion) a été conçu sur mesure. Je réalise le même type de solution pour les concessionnaires, commerces et entreprises qui veulent vendre et se faire connaître en ligne.',
     services: [
       ['bi-globe2', 'Sites web sur mesure', 'Vitrines, catalogues et boutiques en ligne.'],
       ['bi-speedometer2', 'Plateformes de gestion', 'Espace admin, statistiques et suivi des clients.'],
-      ['bi-phone', 'Applications mobiles', 'Applications web installables sur téléphone.'],
+      ['bi-window-desktop', 'Applications web', 'Outils en ligne accessibles depuis tous les navigateurs.'],
       ['bi-shield-check', 'Maintenance & évolution', 'Hébergement, sécurité et mises à jour.']
     ],
     ...(CONFIG.DEVELOPPEUR || {})
@@ -158,36 +152,144 @@ const pied = () => {
         <p class="small mt-3 mb-0">Vente de véhicules neufs et d'occasion, contrôlés et garantis. Un conseiller vous accompagne de la visite à la remise des clés.</p>
         <div class="reseaux"><a href="${lienWa('Bonjour')}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>${liens}</div></div>
       <div class="col-6 col-lg-2 rv" style="--d:80ms"><h3 class="pied-t">Navigation</h3><ul>
-        <li><a href="index.html">Accueil</a></li><li><a href="catalogue.html">Catalogue</a></li>
-        <li><a href="index.html#etapes">Comment ça marche</a></li><li><a href="index.html#apropos">À propos</a></li></ul></div>
+        <li><a href="/">Accueil</a></li><li><a href="/catalogue">Catalogue</a></li>
+        <li><a href="/#etapes">Comment ça marche</a></li><li><a href="/#apropos">À propos</a></li></ul></div>
       <div class="col-6 col-lg-3 rv" style="--d:160ms"><h3 class="pied-t">Contact</h3><ul class="small">
         <li><i class="bi bi-geo-alt me-2"></i>Abidjan, Côte d'Ivoire</li>
         <li><a href="tel:${CONFIG.VENDEUR.telephone}"><i class="bi bi-telephone me-2"></i>${esc(CONFIG.VENDEUR.telephone)}</a></li>
         <li><a href="${lienWa('Bonjour')}" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a></li></ul></div>
-      <div class="col-lg-3 rv" style="--d:240ms"><h3 class="pied-t">Horaires</h3><div id="ouvert"></div>
-        <div class="small">Lun – Sam : ${HEURES.ouverture}h – ${HEURES.fermeture}h</div><div class="small">Dimanche : fermé</div></div>
+      <div class="col-lg-3 rv" style="--d:240ms"><h3 class="pied-t">Horaires</h3><span class="ouvert"><i></i>Disponible 24h/24 · 7j/7</span>
+        <div class="small">Appelez-nous ou écrivez-nous sur WhatsApp à tout moment.</div></div>
     </div></div>
     <div class="pied-bas"><div class="container d-flex flex-wrap justify-content-between gap-2 small">
       <span>© ${new Date().getFullYear()} ${esc(NOM)}. Tous droits réservés.</span>
-      <span>Site conçu par <a class="text-white" href="index.html#developpeur">${esc(dev)}</a></span></div></div>
+      <span>Site conçu par <a class="text-white" href="/#developpeur">${esc(dev)}</a></span></div></div>
   </footer>`;
 };
+
+function majBadgeFavoris() {
+  document.querySelectorAll('.nb-fav').forEach(b => { b.textContent = etat.favoris.length; b.hidden = !etat.favoris.length; });
+}
+
+function basculerFavori(id) {
+  const ajout = !etat.favoris.includes(id);
+  etat.favoris = ajout ? [...etat.favoris, id] : etat.favoris.filter(x => x !== id);
+  localStorage.setItem('favoris', JSON.stringify(etat.favoris));
+  document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => {
+    b.classList.toggle('actif', ajout);
+    b.firstElementChild.className = 'bi bi-heart' + (ajout ? '-fill' : '');
+  });
+  majBadgeFavoris();
+  return ajout;
+}
+
+async function tousLesVehicules() {
+  if (etat.tous && Date.now() - etat.tous.t < 60000) return etat.tous.liste;
+  const liste = [];
+  let page = 1, derniere = 1;
+  do {
+    const r = await Api.vehicules({ tri: 'recent', page });
+    liste.push(...r.data);
+    derniere = r.meta.last_page;
+    page++;
+  } while (page <= derniere && page <= 30);
+  etat.tous = { t: Date.now(), liste };
+  return liste;
+}
+
+function afficherFavoris(liste) {
+  etat.favListe = liste;
+  $('#favoris-n').textContent = liste.length ? ` (${liste.length})` : '';
+  if (!liste.length) {
+    $('#favoris-corps').innerHTML = `<div class="fav-vide"><i class="bi bi-heart"></i><p class="mt-3">Aucun favori pour le moment.<br>Touchez le cœur d'un véhicule pour l'ajouter ici.</p><a class="btn btn-accent" href="/catalogue">Parcourir le catalogue</a></div>`;
+    $('#favoris-pied').innerHTML = '';
+    return;
+  }
+  $('#favoris-corps').innerHTML = liste.map((v, i) => `
+    <div class="fav-item" style="animation-delay:${i * 60}ms">
+      <div class="fav-photo" data-voir="${v.id}">${photo(v)}</div>
+      <div class="fav-infos">
+        <div class="fw-bold">${esc(v.marque)} ${esc(v.modele)}</div>
+        <div class="prix small">${prixV(v)}</div>
+        <div class="small text-muted">${v.annee} · ${km(v.kilometrage)} · ${esc(v.carburant)}</div>
+        <div class="fav-actions">
+          <button class="btn btn-sm btn-accent" data-voir="${v.id}">Voir</button>
+          <button class="btn btn-sm btn-outline-secondary" data-retirer="${v.id}" aria-label="Retirer des favoris"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
+  const texte = 'Bonjour, je suis intéressé par ces véhicules :\n' + liste.map(v => `- ${v.marque} ${v.modele} (${prixV(v)})`).join('\n');
+  $('#favoris-pied').innerHTML = `<a class="btn btn-success w-100 fw-semibold" target="_blank" rel="noopener" href="${lienWa(texte)}"><i class="bi bi-whatsapp me-2"></i>Je suis intéressé par mes favoris</a>`;
+}
+
+async function rendreFavoris() {
+  if (!etat.favoris.length) return afficherFavoris([]);
+  $('#favoris-corps').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-secondary"></div></div>';
+  try {
+    const tous = await tousLesVehicules();
+    const liste = etat.favoris.map(id => tous.find(v => v.id === id)).filter(Boolean);
+    etat.favoris = liste.map(v => v.id);
+    localStorage.setItem('favoris', JSON.stringify(etat.favoris));
+    majBadgeFavoris();
+    liste.forEach(v => { if (!etat.liste.some(x => x.id === v.id)) etat.liste.push(v); });
+    afficherFavoris(liste);
+  } catch (e) {
+    $('#favoris-corps').innerHTML = '<div class="alert alert-danger">Impossible de charger vos favoris. Réessayez dans un instant.</div>';
+  }
+}
+
+function favorisInit() {
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="offcanvas offcanvas-end fav-panel" tabindex="-1" id="favoris-panel" aria-labelledby="favoris-titre">
+      <div class="offcanvas-header"><h5 class="offcanvas-title fw-bold" id="favoris-titre"><i class="bi bi-heart-fill text-accent me-2"></i>Mes favoris<span id="favoris-n"></span></h5><button class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button></div>
+      <div class="offcanvas-body" id="favoris-corps"></div>
+      <div class="fav-pied" id="favoris-pied"></div>
+    </div>`);
+  majBadgeFavoris();
+  const panneau = $('#favoris-panel');
+  document.querySelectorAll('.js-fav').forEach(b => b.addEventListener('click', () => {
+    bootstrap.Offcanvas.getOrCreateInstance(panneau).show();
+    rendreFavoris();
+  }));
+  panneau.addEventListener('click', e => {
+    const voir = e.target.closest('[data-voir]'), retirer = e.target.closest('[data-retirer]');
+    if (voir) { bootstrap.Offcanvas.getOrCreateInstance(panneau).hide(); detail(+voir.dataset.voir); }
+    if (retirer) {
+      const id = +retirer.dataset.retirer;
+      basculerFavori(id);
+      afficherFavoris((etat.favListe || []).filter(v => v.id !== id));
+    }
+  });
+}
+
+function menuMobile() {
+  const nav = $('.nav-main'), btn = $('#menu-btn');
+  const basculer = ouvert => { nav.classList.toggle('nav-open', ouvert); btn.setAttribute('aria-expanded', String(ouvert)); };
+  btn.addEventListener('click', () => basculer(!nav.classList.contains('nav-open')));
+  document.addEventListener('click', e => { if (!e.target.closest('#menu') && !e.target.closest('#menu-btn')) basculer(false); });
+  $('#menu').addEventListener('click', e => { if (e.target.closest('a')) basculer(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') basculer(false); });
+}
 
 function layout(page) {
   $('#nav').innerHTML = `
   <nav class="navbar navbar-expand-lg fixed-top nav-main ${page === 'accueil' ? '' : 'nav-solid'}">
     <div class="container">
-      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">${LOGO}${esc(NOM)}</a>
-      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">${LOGO}${esc(NOM)}</a>
+      <button class="nav-fav js-fav d-lg-none ms-auto me-1" type="button" aria-label="Mes favoris"><i class="bi bi-heart"></i><span class="nb-fav" hidden></span></button>
+      <button class="navbar-toggler" id="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="menu">
         <ul class="navbar-nav mx-auto">
-          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
-          <li class="nav-item"><a class="nav-link" href="catalogue.html">Catalogue</a></li>
-          <li class="nav-item"><a class="nav-link" href="index.html#etapes">Comment ça marche</a></li>
-          <li class="nav-item"><a class="nav-link" href="index.html#apropos">À propos</a></li>
+          <li class="nav-item"><a class="nav-link" href="/">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="/catalogue">Catalogue</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#etapes">Comment ça marche</a></li>
+          <li class="nav-item"><a class="nav-link" href="/#apropos">À propos</a></li>
           <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+          <li class="nav-item d-lg-none"><a class="nav-link" href="${esc(ADMIN_URL)}"><i class="bi bi-box-arrow-in-right me-2"></i>Connexion</a></li>
         </ul>
-        <a class="btn btn-accent btn-sm px-3" href="catalogue.html">Voir les véhicules</a>
+        <button class="nav-fav js-fav d-none d-lg-flex me-3" type="button" aria-label="Mes favoris" title="Mes favoris"><i class="bi bi-heart"></i><span class="nb-fav" hidden></span></button>
+        <a class="nav-connexion d-none d-lg-inline-flex" href="${esc(ADMIN_URL)}"><i class="bi bi-box-arrow-in-right"></i>Connexion</a>
+        <a class="btn btn-accent btn-sm px-3" href="/catalogue">Voir les véhicules</a>
       </div>
     </div>
   </nav>`;
@@ -198,12 +300,6 @@ function layout(page) {
   document.body.insertAdjacentHTML('beforeend', '<a class="fab fab-wa" data-wa target="_blank" rel="noopener" href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a><button class="fab fab-haut" id="haut" aria-label="Haut de page"><i class="bi bi-arrow-up"></i></button>');
   $('#haut').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
   addEventListener('scroll', () => $('#haut').classList.toggle('on', scrollY > 600), { passive: true });
-  const majOuvert = () => {
-    const [ouvert, texte] = statutOuverture();
-    $('#ouvert').innerHTML = `<span class="ouvert ${ouvert ? '' : 'ferme'}"><i></i>${texte}</span>`;
-  };
-  majOuvert();
-  setInterval(majOuvert, 60000);
   document.body.insertAdjacentHTML('beforeend', '<div class="modal fade" id="modal-vehicule" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" id="modal-contenu"></div></div></div>');
   document.querySelectorAll('[data-tel]').forEach(a => a.href = 'tel:' + CONFIG.VENDEUR.telephone);
   document.querySelectorAll('[data-wa]').forEach(a => a.href = lienWa('Bonjour, je souhaite des informations sur vos véhicules.'));
@@ -220,7 +316,7 @@ function carte(v, i = 0) {
       </div>
       <div class="p-3 d-flex flex-column flex-grow-1">
         <h3 class="h6 fw-bold mb-1">${esc(v.marque)} ${esc(v.modele)}</h3>
-        <div class="prix mb-2">${prix(v.prix)}</div>
+        <div class="prix mb-2">${prixV(v)}${v.prix_negociable ? '<span class="neg">À débattre</span>' : ''}</div>
         <div class="specs mt-auto">
           <span><i class="bi bi-calendar3"></i>${v.annee}</span><span><i class="bi bi-speedometer2"></i>${km(v.kilometrage)}</span>
           <span><i class="bi bi-fuel-pump"></i>${esc(v.carburant)}</span><span><i class="bi bi-gear"></i>${esc(v.transmission)}</span>
@@ -233,15 +329,7 @@ function carte(v, i = 0) {
 function grille(el) {
   el.addEventListener('click', e => {
     const fav = e.target.closest('[data-fav]');
-    if (fav) {
-      e.stopPropagation();
-      const id = +fav.dataset.fav;
-      etat.favoris = etat.favoris.includes(id) ? etat.favoris.filter(x => x !== id) : [...etat.favoris, id];
-      localStorage.setItem('favoris', JSON.stringify(etat.favoris));
-      fav.classList.toggle('actif');
-      fav.firstElementChild.className = 'bi bi-heart' + (etat.favoris.includes(id) ? '-fill' : '');
-      return;
-    }
+    if (fav) { e.stopPropagation(); basculerFavori(+fav.dataset.fav); return; }
     const c = e.target.closest('[data-id]');
     if (c) detail(+c.dataset.id);
   });
@@ -269,7 +357,8 @@ function detail(id) {
       <div class="row g-4">
         <div class="col-lg-7 gal"><div id="${gid}" class="carousel slide" data-bs-ride="false"><div class="carousel-inner">${slides}</div>${controles}${vignettes}</div></div>
         <div class="col-lg-5">
-          <div class="prix fs-3 mb-3">${prix(v.prix)}</div>
+          <div class="prix fs-3 mb-1">${prixV(v)}</div>
+          ${v.prix_negociable ? '<div class="small text-success fw-semibold mb-3"><i class="bi bi-chat-dots me-1"></i>Prix à débattre avec le vendeur</div>' : '<div class="mb-3"></div>'}
           <table class="table table-borderless fiche mb-3"><tbody>${lignes}</tbody></table>
           <p class="mb-0 text-muted">${esc(v.description)}</p>
         </div>
@@ -287,10 +376,19 @@ function detail(id) {
       </form>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-outline-danger me-auto" id="fav-detail" type="button"></button>
       <a class="btn btn-outline-dark" href="tel:${CONFIG.VENDEUR.telephone}"><i class="bi bi-telephone me-2"></i>Appeler</a>
-      <a class="btn btn-success" target="_blank" rel="noopener" href="${lienWa(`Bonjour, je suis intéressé par la ${v.marque} ${v.modele} (${prix(v.prix)}).`)}"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
+      <a class="btn btn-success" target="_blank" rel="noopener" href="${lienWa(`Bonjour, je suis intéressé par la ${v.marque} ${v.modele} (${prixV(v)}).`)}"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
     </div>`;
   bootstrap.Modal.getOrCreateInstance('#modal-vehicule').show();
+  const majFavDetail = () => {
+    const b = $('#fav-detail'), f = etat.favoris.includes(v.id);
+    b.innerHTML = `<i class="bi bi-heart${f ? '-fill' : ''} me-1"></i>${f ? 'Dans vos favoris' : 'Ajouter aux favoris'}`;
+    b.classList.toggle('btn-danger', f);
+    b.classList.toggle('btn-outline-danger', !f);
+  };
+  majFavDetail();
+  $('#fav-detail').onclick = () => { basculerFavori(v.id); majFavDetail(); };
   $('#form-demande').addEventListener('submit', async e => {
     e.preventDefault();
     const f = e.target, retour = $('#demande-retour'), btn = f.querySelector('button');
@@ -310,7 +408,7 @@ function compte(el, n) {
 
 function hero(data) {
   const bg = $('#hero-bg');
-  const urls = [...(CONFIG.HERO_IMAGES || []), ...data.flatMap(imgs)].slice(0, 6);
+  const urls = [...(CONFIG.HERO_IMAGES || []).map(ressource), ...data.flatMap(imgs)].slice(0, 6);
   bg.innerHTML = urls.map((u, i) => `<div class="slide ${i ? '' : 'on'}" style="background-image:url('${esc(u)}')"></div>`).join('');
   if (urls.length < 2) return;
   const s = bg.children;
@@ -410,7 +508,7 @@ function afficherStory(i) {
     v.play().catch(() => {});
   }
   const texte = veh
-    ? `Bonjour, je suis intéressé par la ${veh.marque} ${veh.modele} (${prix(veh.prix)}).`
+    ? `Bonjour, je suis intéressé par la ${veh.marque} ${veh.modele} (${prixV(veh)}).`
     : `Bonjour, je suis intéressé par : ${s.legende || 'vos véhicules'}.`;
   $('#sv-actions').innerHTML =
     (veh ? '<button class="btn btn-light fw-semibold" id="sv-voir">Voir ce véhicule</button>' : '') +
@@ -444,15 +542,20 @@ async function accueil() {
     if (e.isIntersecting && nbV) { compte($('#c-vehicules'), nbV); compte($('#c-marques'), nbM); }
   })).observe($('#accueil'));
   try {
-    const [res, marques] = await Promise.all([Api.vehicules({ tri: 'recent', page: 1 }), Api.marques().catch(() => [])]);
-    etat.liste = res.data;
-    hero(res.data);
+    const [res, suite, marques] = await Promise.all([
+      Api.vehicules({ tri: 'recent', page: 1 }),
+      Api.vehicules({ tri: 'recent', page: 2 }).catch(() => ({ data: [] })),
+      Api.marques().catch(() => [])
+    ]);
+    const vedettes = [...res.data, ...suite.data].slice(0, 9);
+    etat.liste = vedettes;
+    hero(vedettes);
     nbV = res.meta.total; nbM = marques.length;
     compte($('#c-vehicules'), nbV);
     compte($('#c-marques'), nbM);
     const opts = marques.map(m => `<option>${esc(m)}</option>`).join('');
     $('#hero-marque').insertAdjacentHTML('beforeend', opts);
-    $('#vedette').innerHTML = res.data.map(carte).join('');
+    $('#vedette').innerHTML = vedettes.map(carte).join('');
     grille($('#vedette'));
   } catch (e) {
     $('#vedette').innerHTML = '<div class="col-12"><div class="alert alert-danger">Impossible de charger les véhicules pour le moment.</div></div>';
@@ -462,7 +565,7 @@ async function accueil() {
     const p = new URLSearchParams();
     if ($('#hero-marque').value) p.set('marque', $('#hero-marque').value);
     if ($('#hero-budget').value) p.set('prix_max', $('#hero-budget').value);
-    location.href = 'catalogue.html' + (p.toString() ? '?' + p : '');
+    location.href = '/catalogue' + (p.toString() ? '?' + p : '');
   });
   revele();
 }
@@ -525,6 +628,8 @@ addEventListener('pageshow', e => {
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.dataset.page;
   layout(page);
+  menuMobile();
+  favorisInit();
   alerteInit();
   Suivi.envoyer('page');
   addEventListener('scroll', () => $('.nav-main').classList.toggle('nav-solid', page !== 'accueil' || scrollY > 40), { passive: true });

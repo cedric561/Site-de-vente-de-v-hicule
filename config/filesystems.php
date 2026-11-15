@@ -38,14 +38,24 @@ return [
             'report' => false,
         ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
-            'visibility' => 'public',
-            'throw' => false,
-            'report' => false,
-        ],
+       'public' => env('PUBLIC_DISK_DRIVER', 'local') === 's3' ? [
+    'driver' => 's3',
+    'key' => env('SUPABASE_S3_KEY'),
+    'secret' => env('SUPABASE_S3_SECRET'),
+    'region' => env('SUPABASE_S3_REGION', 'eu-central-1'),
+    'bucket' => env('SUPABASE_S3_BUCKET', 'public'),
+    'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+    'url' => env('SUPABASE_PUBLIC_URL'),
+    'use_path_style_endpoint' => true,
+    'throw' => true,
+] : [
+    'driver' => 'local',
+    'root' => storage_path('app/public'),
+    'url' => env('APP_URL').'/storage',
+    'visibility' => 'public',
+    'throw' => false,
+    'report' => false,
+],
 
         's3' => [
             'driver' => 's3',

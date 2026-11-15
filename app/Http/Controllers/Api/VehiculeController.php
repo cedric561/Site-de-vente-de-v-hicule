@@ -22,12 +22,15 @@ class VehiculeController extends Controller
         });
         $query->when($request->marque, fn ($q, $v) => $q->where('marque', $v));
         $query->when($request->carburant, fn ($q, $v) => $q->where('carburant', $v));
-        $query->when($request->prix_max, fn ($q, $v) => $q->where('prix', '<=', (int) $v));
+        $query->when($request->prix_max, fn ($q, $v) => $q->where(function ($w) use ($v) {
+            $w->whereRaw('COALESCE(prix, prix_min, prix_max) <= ?', [(int) $v])
+            ->orWhereRaw('COALESCE(prix, prix_min, prix_max) IS NULL');
+        }));
         $query->when($request->annee_min, fn ($q, $v) => $q->where('annee', '>=', (int) $v));
 
         match ($request->tri) {
-            'prix_asc'  => $query->orderBy('prix'),
-            'prix_desc' => $query->orderByDesc('prix'),
+           'prix_asc'  => $query->orderByRaw('COALESCE(prix, prix_min, prix_max) IS NULL')->orderByRaw('COALESCE(prix, prix_min, prix_max) ASC'),
+            'prix_desc' => $query->orderByRaw('COALESCE(prix, prix_min, prix_max) IS NULL')->orderByRaw('COALESCE(prix, prix_min, prix_max) DESC'),
             'km_asc'    => $query->orderBy('kilometrage'),
             default     => $query->orderByDesc('annee')->orderByDesc('id'),
         };

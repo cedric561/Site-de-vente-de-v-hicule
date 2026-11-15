@@ -45,7 +45,7 @@ class AbonnesTable
                         $lien = rtrim(config('app.url'), '/') . '/site-auto/catalogue.html';
                         $salut = $record->nom ? "Bonjour {$record->nom}" : 'Bonjour';
                         $texte = $v
-                            ? "{$salut}, nouveau véhicule disponible : {$v->marque} {$v->modele} {$v->annee}, " . number_format($v->prix, 0, ',', ' ') . " FCFA.\nVoir le catalogue : {$lien}"
+                            ? "{$salut}, nouveau véhicule disponible : {$v->marque} {$v->modele} {$v->annee}, " . $v->prix_affiche . ($v->prix_negociable ? ' (à débattre)' : '') . ".\nVoir le catalogue : {$lien}"
                             : "{$salut}, de nouveaux véhicules sont disponibles.\nVoir le catalogue : {$lien}";
 
                         return 'https://wa.me/' . $record->whatsapp . '?text=' . rawurlencode($texte . "\n\nPour ne plus recevoir de messages, répondez STOP.");
