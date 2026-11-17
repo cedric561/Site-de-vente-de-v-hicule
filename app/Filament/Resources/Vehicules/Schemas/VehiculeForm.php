@@ -44,12 +44,13 @@ class VehiculeForm
                 ->image()
                 ->multiple()
                 ->reorderable()
+                ->disk('public')
+                ->directory('vehicules')
+                ->visibility('public')
+                ->preserveFilenames()
                 ->maxFiles(10)
                 ->maxSize(4096)
-                ->disk('public')
-                ->visibility('public')
-                ->columnSpanFull(),
-            Toggle::make('actif')->label('Visible sur le site')->default(true),
+                ->columnSpanFull()
         ]);
     }
 }
