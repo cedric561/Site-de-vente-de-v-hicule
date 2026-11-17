@@ -10,9 +10,9 @@ class VehiculeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $photos = collect($this->photos ?? [])
-        ->map(fn ($chemin) => Storage::disk('public')->url($chemin))
-        ->values();
+      $photos = collect($this->photos ?? [])
+    ->map(fn ($chemin) => env('SUPABASE_PUBLIC_URL') . '/storage/v1/object/public/publicc/' . $chemin)
+    ->values();
 
         return [
             'id' => $this->id,
