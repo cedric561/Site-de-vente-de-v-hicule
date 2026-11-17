@@ -4,14 +4,15 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class VehiculeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $photos = collect($this->photos ?? [])
-            ->map(fn ($chemin) => asset('storage/' . $chemin))
-            ->values();
+        ->map(fn ($chemin) => Storage::disk('public')->url($chemin))
+        ->values();
 
         return [
             'id' => $this->id,
