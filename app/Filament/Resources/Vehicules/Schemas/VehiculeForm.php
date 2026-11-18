@@ -39,17 +39,21 @@ class VehiculeForm
             TextInput::make('couleur'),
             TextInput::make('portes')->numeric()->default(5),
             Textarea::make('description')->rows(4)->columnSpanFull(),
-            FileUpload::make('photos')
-                ->label('Photos (la première sert de couverture)')
-                ->image()
-                ->multiple()
-                ->reorderable()
-                ->disk('public')
-                ->directory('vehicules')
-                ->visibility('public')
-                ->maxFiles(10)
-                ->maxSize(4096)
-                ->columnSpanFull()
+            // FileUpload::make('photos')
+            //     ->label('Photos (la première sert de couverture)')
+            //     ->image()
+            //     ->multiple()
+            //     ->reorderable()
+            //     ->disk('public')
+            //     ->directory('vehicules')
+            //     ->visibility('public')
+            //     ->maxFiles(10)
+            //     ->maxSize(4096)
+            //     ->columnSpanFull()
+            TextInput::make('image')
+                ->label('Nom du fichier image')
+                ->helperText('Exemple : peugeot3008.jpg')
+                ->required(),
         ]);
     }
 }
