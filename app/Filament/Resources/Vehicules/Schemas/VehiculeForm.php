@@ -47,7 +47,6 @@ class VehiculeForm
                 ->disk('public')
                 ->directory('vehicules')
                 ->visibility('public')
-                ->preserveFilenames()
                 ->maxFiles(10)
                 ->maxSize(4096)
                 ->columnSpanFull()

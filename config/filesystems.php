@@ -39,6 +39,8 @@ return [
         ],
 
        'public' => env('PUBLIC_DISK_DRIVER', 'local') === 's3' ? [
+        'request_checksum_calculation' => 'when_required',
+        'response_checksum_validation' => 'when_required',
     'driver' => 's3',
     'key' => env('SUPABASE_S3_KEY'),
     'secret' => env('SUPABASE_S3_SECRET'),
