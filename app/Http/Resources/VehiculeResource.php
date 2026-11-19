@@ -10,7 +10,9 @@ class VehiculeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-   $image = url('/site-auto/assets/vehicules/' . $this->image);
+   $photos = collect(explode(',', $this->image))
+    ->map(fn ($photo) => url('/site-auto/assets/vehicules/' . trim($photo)))
+    ->values();
 
 
         return [
@@ -30,8 +32,8 @@ class VehiculeResource extends JsonResource
             'couleur' => $this->couleur,
             'portes' => $this->portes,
             'description' => $this->description,
-            'image' => $image,
-            'images' => [$image],
+            'image' => $photos->first(),
+'images' => $photos,
         ];
     }
 }
